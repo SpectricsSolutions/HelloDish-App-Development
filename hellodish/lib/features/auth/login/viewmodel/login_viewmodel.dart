@@ -15,9 +15,13 @@ class LoginViewModel extends ChangeNotifier {
   String _countryCode = '+91';
 
   LoginState get state => _state;
+
   String get errorMessage => _errorMessage;
+
   String get otpId => _otpId;
+
   String get phoneNo => _phoneNo;
+
   String get countryCode => _countryCode;
 
   void setCountryCode(String code) {
@@ -37,12 +41,10 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       final deviceType = Platform.isAndroid ? 'android' : 'ios';
-      final cleanCountryCode = _countryCode.replaceAll('+', '');
 
       final response = await _repository.login(
         phoneNo: phoneNo,
-        countryCode: cleanCountryCode,
-        deviceType: deviceType,
+        countryCode: _countryCode,
       );
 
       if (response.isSuccess && response.otpId != null) {

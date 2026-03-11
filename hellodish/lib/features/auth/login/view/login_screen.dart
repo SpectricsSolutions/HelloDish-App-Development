@@ -20,18 +20,7 @@ class _LoginScreenState extends State<LoginScreen>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
-  String _selectedCountryCode = '+91';
-  String _selectedCountryFlag = '🇮🇳';
-
-  final List<Map<String, String>> _countryCodes = [
-    {'code': '+91', 'flag': '🇮🇳', 'name': 'India'},
-    {'code': '+1', 'flag': '🇺🇸', 'name': 'United States'},
-    {'code': '+44', 'flag': '🇬🇧', 'name': 'United Kingdom'},
-    {'code': '+61', 'flag': '🇦🇺', 'name': 'Australia'},
-    {'code': '+971', 'flag': '🇦🇪', 'name': 'UAE'},
-    {'code': '+65', 'flag': '🇸🇬', 'name': 'Singapore'},
-    {'code': '+60', 'flag': '🇲🇾', 'name': 'Malaysia'},
-  ];
+  static const String _countryCode = '+91';
 
   @override
   void initState() {
@@ -57,88 +46,20 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  void _showCountryPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.lightGrey,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Select Country',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ..._countryCodes.map((country) {
-              return ListTile(
-                leading: Text(
-                  country['flag']!,
-                  style: const TextStyle(fontSize: 24),
-                ),
-                title: Text(
-                  country['name']!,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 15,
-                  ),
-                ),
-                trailing: Text(
-                  country['code']!,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    color: AppColors.grey,
-                  ),
-                ),
-                onTap: () {
-                  setState(() {
-                    _selectedCountryCode = country['code']!;
-                    _selectedCountryFlag = country['flag']!;
-                  });
-                  context.read<LoginViewModel>().setCountryCode(
-                    country['code']!,
-                  );
-                  Navigator.pop(context);
-                },
-              );
-            }),
-            const SizedBox(height: 16),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _onLogin() async {
+  Future<void> _onLogin(BuildContext providerContext) async {
     if (!_formKey.currentState!.validate()) return;
 
-    final vm = context.read<LoginViewModel>();
+    final vm = providerContext.read<LoginViewModel>();
     final success = await vm.login(_phoneController.text.trim());
 
-    if (success && mounted) {
-      Navigator.of(context).push(
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.of(providerContext).push(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => OtpScreen(
             phoneNo: _phoneController.text.trim(),
-            countryCode: _selectedCountryCode,
+            countryCode: _countryCode,
             otpId: vm.otpId,
           ),
           transitionDuration: const Duration(milliseconds: 400),
@@ -152,8 +73,8 @@ class _LoginScreenState extends State<LoginScreen>
           },
         ),
       );
-    } else if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    } else {
+      ScaffoldMessenger.of(providerContext).showSnackBar(
         SnackBar(
           content: Text(
             vm.errorMessage,
@@ -174,226 +95,219 @@ class _LoginScreenState extends State<LoginScreen>
     return ChangeNotifierProvider(
       create: (_) => LoginViewModel(),
       child: Consumer<LoginViewModel>(
-        builder: (context, vm, _) {
-          return Scaffold(
-            backgroundColor: AppColors.background,
-            body: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 40),
+        builder: (providerContext, vm, _) {
+          final isLoading = vm.state == LoginState.loading;
 
-                          // Header Row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return Stack(
+            children: [
+              Scaffold(
+                backgroundColor: AppColors.background,
+                body: SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              const SizedBox(height: 40),
+
+                              // Header Row
+                              Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    'Welcome Back!',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.black,
-                                    ),
+                                  const Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Welcome Back!',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.black,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'Login to your account',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 14,
+                                          color: AppColors.grey,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Login to your account',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 14,
-                                      color: AppColors.grey,
+                                  Container(
+                                    width: 72,
+                                    height: 72,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.primary,
+                                    ),
+                                    child: Image.asset(
+                                      'assets/image/logo.png',
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
                                 ],
                               ),
-                              // Driver Logo
+
+                              const SizedBox(height: 48),
+
+                              // Phone Label
+                              const Text(
+                                'Phone Number',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+
+                              // Phone Input
                               Container(
-                                width: 72,
-                                height: 72,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primary,
-                                ),
-                                child: const Icon(
-                                  Icons.delivery_dining,
+                                decoration: BoxDecoration(
                                   color: AppColors.white,
-                                  size: 36,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 48),
-
-                          // Phone Label
-                          const Text(
-                            'Phone Number',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.grey,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Phone Input
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: const Color(0xFFE8ECF0),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                // Country Code Picker
-                                GestureDetector(
-                                  onTap: _showCountryPicker,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 16,
-                                    ),
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        right: BorderSide(
-                                          color: Color(0xFFE8ECF0),
-                                        ),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          _selectedCountryFlag,
-                                          style:
-                                          const TextStyle(fontSize: 20),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          _selectedCountryCode,
-                                          style: const TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const Icon(
-                                          Icons.keyboard_arrow_down,
-                                          size: 18,
-                                          color: AppColors.grey,
-                                        ),
-                                      ],
-                                    ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: const Color(0xFFE8ECF0),
                                   ),
                                 ),
-
-                                // Phone Number Field
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _phoneController,
-                                    keyboardType: TextInputType.phone,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(10),
-                                    ],
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    decoration: const InputDecoration(
-                                      hintText: 'Enter phone number',
-                                      hintStyle: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 14,
-                                        color: AppColors.lightGrey,
-                                      ),
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(
+                                child: Row(
+                                  children: [
+                                    // Static India flag + code
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
                                         horizontal: 14,
                                         vertical: 16,
                                       ),
+                                      decoration: const BoxDecoration(
+                                        border: Border(
+                                          right: BorderSide(
+                                            color: Color(0xFFE8ECF0),
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        children: [
+                                          Text(
+                                            '🇮🇳',
+                                            style: TextStyle(fontSize: 20),
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            _countryCode,
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter phone number';
-                                      }
-                                      if (value.length < 7) {
-                                        return 'Enter a valid phone number';
-                                      }
-                                      return null;
-                                    },
+
+                                    // Phone Number Field
+                                    Expanded(
+                                      child: TextFormField(
+                                        controller: _phoneController,
+                                        keyboardType: TextInputType.phone,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                          LengthLimitingTextInputFormatter(10),
+                                        ],
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        decoration: const InputDecoration(
+                                          hintText: 'Enter phone number',
+                                          hintStyle: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontSize: 14,
+                                            color: AppColors.lightGrey,
+                                          ),
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 16,
+                                          ),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter phone number';
+                                          }
+                                          if (value.length < 10) {
+                                            return 'Enter a valid 10-digit phone number';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 40),
+
+                              // Login Button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  onPressed: isLoading
+                                      ? null
+                                      : () => _onLogin(providerContext),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    disabledBackgroundColor:
+                                    AppColors.primary.withOpacity(0.6),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: isLoading
+                                      ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                      : const Text(
+                                    'Send OTP',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.white,
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 40),
-
-                          // Login Button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: vm.state == LoginState.loading
-                                  ? null
-                                  : _onLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                disabledBackgroundColor:
-                                AppColors.primary.withOpacity(0.6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                elevation: 0,
                               ),
-                              child: vm.state == LoginState.loading
-                                  ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                                  : const Text(
-                                'Send OTP',
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            ),
-                          ),
 
-                          const SizedBox(height: 32),
+                              const SizedBox(height: 40),
 
-                          // Divider
-                          const Row(
-                            children: [
-                              Expanded(
-                                  child: Divider(color: Color(0xFFE8ECF0))),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
+                              // Terms
+                              const Center(
                                 child: Text(
-                                  'OR',
+                                  'By continuing, you agree to our',
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 12,
@@ -401,111 +315,95 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                 ),
                               ),
-                              Expanded(
-                                  child: Divider(color: Color(0xFFE8ECF0))),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Continue as Guest
-                          Center(
-                            child: GestureDetector(
-                              onTap: () {
-                                // Navigate to home as guest
-                              },
-                              child: RichText(
-                                text: const TextSpan(
-                                  text: 'Continue as a ',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 14,
-                                    color: AppColors.grey,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: 'Guest',
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Sign Up
-                          Center(
-                            child: RichText(
-                              text: const TextSpan(
-                                text: "Don't have an account? ",
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  color: AppColors.grey,
-                                ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  TextSpan(
-                                    text: 'Sign up',
+                                  _termsLink('Terms of Service'),
+                                  const Text(
+                                    ' | ',
                                     style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.lightGrey,
+                                      fontSize: 12,
                                     ),
                                   ),
+                                  _termsLink('Privacy Policy'),
+                                  const Text(
+                                    ' | ',
+                                    style: TextStyle(
+                                      color: AppColors.lightGrey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  _termsLink('Content Policy'),
                                 ],
                               ),
-                            ),
-                          ),
 
-                          const SizedBox(height: 32),
-
-                          // Terms
-                          const Center(
-                            child: Text(
-                              'By continuing, you agree to our',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                color: AppColors.lightGrey,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _termsLink('Terms of Service'),
-                              const Text(
-                                ' | ',
-                                style: TextStyle(
-                                  color: AppColors.lightGrey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              _termsLink('Privacy Policy'),
-                              const Text(
-                                ' | ',
-                                style: TextStyle(
-                                  color: AppColors.lightGrey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              _termsLink('Content Policy'),
+                              const SizedBox(height: 24),
                             ],
                           ),
-
-                          const SizedBox(height: 24),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+
+              // Full-screen progress overlay while sending OTP
+              if (isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.35),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 28),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Sending OTP...',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Please wait a moment',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              color: AppColors.grey.withOpacity(0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           );
         },
       ),

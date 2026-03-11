@@ -48,6 +48,13 @@ class _CustomBottomNav extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _items = [
+    (icon: Icons.home_outlined,        activeIcon: Icons.home_rounded,         label: 'Home'),
+    (icon: Icons.storefront_outlined,  activeIcon: Icons.storefront_rounded,   label: 'Cart'),
+    (icon: Icons.shopping_bag_outlined,activeIcon: Icons.shopping_bag_rounded, label: 'Orders'),
+    (icon: Icons.tune_outlined,        activeIcon: Icons.tune_rounded,         label: 'Settings'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -66,34 +73,17 @@ class _CustomBottomNav extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-                label: 'Home',
-                isActive: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: Icons.storefront_outlined,
-                activeIcon: Icons.storefront_rounded,
-                label: 'Cart',
-                isActive: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: Icons.shopping_bag_outlined,
-                activeIcon: Icons.shopping_bag_rounded,
-                label: 'Orders',
-                isActive: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              // Active "Environment" pill button
-              _MenuNavItem(
-                isActive: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-            ],
+            children: List.generate(_items.length, (index) {
+              final item = _items[index];
+              final isActive = currentIndex == index;
+              return _NavItem(
+                icon: item.icon,
+                activeIcon: item.activeIcon,
+                label: item.label,
+                isActive: isActive,
+                onTap: () => onTap(index),
+              );
+            }),
           ),
         ),
       ),
@@ -121,71 +111,48 @@ class _NavItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              size: 26,
-              color: isActive ? AppColors.primary : AppColors.lightGrey,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                color: isActive ? AppColors.primary : AppColors.lightGrey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MenuNavItem extends StatelessWidget {
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _MenuNavItem({required this.isActive, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: isActive ? 16 : 12,
+          vertical: 10,
+        ),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primary : AppColors.white,
+          color: isActive ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
-            color: isActive ? AppColors.primary : const Color(0xFFE8ECF0),
+            color: isActive ? AppColors.primary : Colors.transparent,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.tune_rounded,
-              size: 20,
+              isActive ? activeIcon : icon,
+              size: 22,
               color: isActive ? AppColors.white : AppColors.lightGrey,
             ),
-            const SizedBox(width: 6),
-            Text(
-              'Environment',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isActive ? AppColors.white : AppColors.lightGrey,
-              ),
+            // Animate label in/out when active
+            AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              child: isActive
+                  ? Row(
+                children: [
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
+                  ),
+                ],
+              )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),

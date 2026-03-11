@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'features/home/HomeViewModel.dart';
+import 'features/location/AddressViewModel.dart';
+import 'features/menu/viewmodel/MenuViewModel.dart';
 import 'features/splash/view/splash_screen.dart';
+
 import 'features/auth/login/viewmodel/login_viewmodel.dart';
+import 'features/splash/viewmodel/splash_view_model.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,10 +29,14 @@ class HellodishApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
+        ChangeNotifierProvider(create: (_) => MenuViewModel()),
+        ChangeNotifierProvider(create: (_) => AddressViewModel()),
+        ChangeNotifierProvider(create: (_) => HomeViewModel()),
       ],
       child: MaterialApp(
-        title: 'Hellodish Driver',
+        title: 'Hellodish',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'Poppins',

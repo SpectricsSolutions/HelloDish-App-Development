@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import '../../../../core/cache/PrefManager.dart';
 import '../../login/model/auth_repository.dart';
+
+import '../../../../network/api_service.dart';
 
 enum OtpState { idle, loading, success, error }
 
 class OtpViewModel extends ChangeNotifier {
   final AuthRepository _repository = AuthRepository();
+  final PrefManager _prefManager = PrefManager();
+  final ApiService _apiService = ApiService();
 
   OtpState _state = OtpState.idle;
   String _errorMessage = '';
@@ -24,18 +28,32 @@ class OtpViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final deviceType = Platform.isAndroid ? 'android' : 'ios';
-      const firebaseToken = ''; // Replace with actual FCM token
-
       final response = await _repository.verifyOtp(
         otpId: otpId,
         otp: otp,
-        firebaseToken: firebaseToken,
-        deviceType: deviceType,
       );
 
       if (response.isSuccess && response.token != null) {
         _token = response.token!;
+
+        // Save token for future sessions
+        await _prefManager.saveAuthToken(_token);
+
+        // Set token on ApiService for all future requests
+        _apiService.setAuthToken(_token);
+
+        // Save user info if present in response
+        if (response.user != null) {
+          final user = response.user!;
+          await _prefManager.saveUserInfo(
+            userId: user.id,
+            firstName: user.fName,
+            lastName: user.lName,
+            phone: user.phone,
+            countryCode: user.countryCode,
+          );
+        }
+
         _state = OtpState.success;
         notifyListeners();
         return true;
@@ -62,10 +80,9 @@ class OtpViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final cleanCode = countryCode.replaceAll('+', '');
       final response = await _repository.resendOtp(
         phoneNo: phoneNo,
-        countryCode: cleanCode,
+        countryCode: countryCode,
       );
 
       if (response.isSuccess) {

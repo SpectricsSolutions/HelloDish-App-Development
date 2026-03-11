@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/app_constants.dart';
-import '../../auth/login/view/login_screen.dart';
 
+import '../../auth/login/view/login_screen.dart';
+import '../../main_nav/view/main_nav_screen.dart';
+import '../viewmodel/splash_view_model.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1800),
       vsync: this,
@@ -49,19 +53,33 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const LoginScreen(),
-            transitionDuration: const Duration(milliseconds: 600),
-            transitionsBuilder: (_, animation, __, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
-        );
-      }
-    });
+    // Run token check + guest API in parallel with the animation.
+    // Navigate only after BOTH the minimum display time (2.5s) and
+    // the async work are complete — whichever finishes last.
+    _initAndNavigate();
+  }
+
+  Future<void> _initAndNavigate() async {
+    final vm = context.read<SplashViewModel>();
+
+    final results = await Future.wait([
+      vm.initialize(),
+      Future.delayed(const Duration(milliseconds: 2500), () => null),
+    ]);
+
+    if (!mounted) return;
+
+    final isLoggedIn = results[0] as bool;
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) =>
+        isLoggedIn ? const MainNavScreen() : const LoginScreen(),
+        transitionDuration: const Duration(milliseconds: 600),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+      ),
+    );
   }
 
   @override
@@ -101,10 +119,13 @@ class _SplashScreenState extends State<SplashScreen>
                             shape: BoxShape.circle,
                             color: AppColors.primary,
                           ),
-                          child: const Icon(
-                            Icons.fork_right,
-                            color: AppColors.white,
-                            size: 40,
+                          child: Center(
+                            child: Image.asset(
+                              'assets/image/logo.png',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),

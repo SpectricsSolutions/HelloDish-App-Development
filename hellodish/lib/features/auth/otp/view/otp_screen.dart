@@ -105,7 +105,8 @@ class _OtpScreenState extends State<OtpScreen>
           ),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
@@ -137,7 +138,8 @@ class _OtpScreenState extends State<OtpScreen>
           ),
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       for (var c in _controllers) {
@@ -164,7 +166,8 @@ class _OtpScreenState extends State<OtpScreen>
           ),
           backgroundColor: AppColors.green,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     }
@@ -176,194 +179,243 @@ class _OtpScreenState extends State<OtpScreen>
       create: (_) => OtpViewModel(),
       builder: (context, _) {
         final otpVm = context.watch<OtpViewModel>();
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 24),
+        final isLoading = otpVm.state == OtpState.loading;
 
-                      // Back Button
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE8ECF0)),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 18,
-                            color: AppColors.black,
-                          ),
-                        ),
-                      ),
+        return Stack(
+          children: [
+            Scaffold(
+              backgroundColor: AppColors.background,
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
 
-                      const SizedBox(height: 32),
-
-                      const Text(
-                        'Verification\nCode',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.black,
-                          height: 1.2,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      RichText(
-                        text: TextSpan(
-                          text: 'Check your phone ',
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 14,
-                            color: AppColors.grey,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '${widget.countryCode} ${widget.phoneNo}',
-                              style: const TextStyle(
+                          // Back Button
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: const Color(0xFFE8ECF0)),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new,
+                                size: 18,
                                 color: AppColors.black,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const TextSpan(text: ' for the verification code.'),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      // OTP Input Fields
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(6, (index) {
-                          return _OtpBox(
-                            controller: _controllers[index],
-                            focusNode: _focusNodes[index],
-                            onChanged: (val) => _onOtpDigitChanged(index, val),
-                            onBackspace: () {
-                              if (_controllers[index].text.isEmpty && index > 0) {
-                                _controllers[index - 1].clear();
-                                _focusNodes[index - 1].requestFocus();
-                              }
-                            },
-                          );
-                        }),
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      // Verify Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: otpVm.state == OtpState.loading || _otp.length < 6
-                              ? null
-                              : () => _onVerify(otpVm),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            elevation: 0,
                           ),
-                          child: otpVm.state == OtpState.loading
-                              ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                              : const Text(
-                            'Verify and Continue',
+
+                          const SizedBox(height: 32),
+
+                          const Text(
+                            'Verification\nCode',
                             style: TextStyle(
                               fontFamily: 'Poppins',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.black,
+                              height: 1.2,
                             ),
                           ),
-                        ),
-                      ),
 
-                      const SizedBox(height: 32),
+                          const SizedBox(height: 12),
 
-                      // Resend OTP
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Didn't get the OTP? ",
-                              style: TextStyle(
+                          RichText(
+                            text: TextSpan(
+                              text: 'Check your phone ',
+                              style: const TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 14,
                                 color: AppColors.grey,
                               ),
+                              children: [
+                                TextSpan(
+                                  text:
+                                  '${widget.countryCode} ${widget.phoneNo}',
+                                  style: const TextStyle(
+                                    color: AppColors.black,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const TextSpan(
+                                    text: ' for the verification code.'),
+                              ],
                             ),
-                            GestureDetector(
-                              onTap: () => _onResend(otpVm),
-                              child: Text(
-                                _canResend ? 'Resend' : 'Resend in ${_resendSeconds}s',
+                          ),
+
+                          const SizedBox(height: 48),
+
+                          // OTP Input Fields
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(6, (index) {
+                              return _OtpBox(
+                                controller: _controllers[index],
+                                focusNode: _focusNodes[index],
+                                onChanged: (val) =>
+                                    _onOtpDigitChanged(index, val),
+                                onBackspace: () {
+                                  if (_controllers[index].text.isEmpty &&
+                                      index > 0) {
+                                    _controllers[index - 1].clear();
+                                    _focusNodes[index - 1].requestFocus();
+                                  }
+                                },
+                              );
+                            }),
+                          ),
+
+                          const SizedBox(height: 48),
+
+                          // Verify Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: isLoading || _otp.length < 6
+                                  ? null
+                                  : () => _onVerify(otpVm),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                disabledBackgroundColor:
+                                AppColors.primary.withOpacity(0.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                                  : const Text(
+                                'Verify and Continue',
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: _canResend ? AppColors.primary : AppColors.lightGrey,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      Center(
-                        child: RichText(
-                          text: const TextSpan(
-                            text: "Don't have an account? ",
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              color: AppColors.grey,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: 'Sign up',
-                                style: TextStyle(
-                                  color: AppColors.primary,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w600,
+                                  color: AppColors.white,
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+
+                          const SizedBox(height: 32),
+
+                          // Resend OTP
+                          Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  "Didn't get the OTP? ",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 14,
+                                    color: AppColors.grey,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () => _onResend(otpVm),
+                                  child: Text(
+                                    _canResend
+                                        ? 'Resend'
+                                        : 'Resend in ${_resendSeconds}s',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: _canResend
+                                          ? AppColors.primary
+                                          : AppColors.lightGrey,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 48),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+
+            // Full-screen progress overlay while verifying OTP
+            if (isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.35),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 28),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Verifying OTP...',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Please wait a moment',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            color: AppColors.grey.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -392,7 +444,9 @@ class _OtpBox extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: focusNode.hasFocus ? AppColors.primary : const Color(0xFFE8ECF0),
+          color: focusNode.hasFocus
+              ? AppColors.primary
+              : const Color(0xFFE8ECF0),
           width: focusNode.hasFocus ? 2 : 1,
         ),
         boxShadow: focusNode.hasFocus

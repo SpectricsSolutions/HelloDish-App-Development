@@ -63,6 +63,6 @@ class AppTextStyles {
 }
 
 class AppStrings {
-  static const String baseUrl = 'https://your-base-url.com/api';
+  static const String baseUrl = 'https://nonaquatic-shu-xerically.ngrok-free.dev/app';
   static const String appName = 'HELLODISH';
 }
